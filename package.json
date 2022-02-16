@@ -1,8 +1,7 @@
 {
-  "name": "in-browser-image-compression",
+  "name": "@staurand/ibic",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "build": "NODE_ENV='production' rollup -c",
     "build-staging": "NODE_ENV='staging' rollup -c",
@@ -17,8 +16,8 @@
       "./setup-jest.js"
     ]
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Stéphane Taurand",
+  "license": "GPL-2.0+",
   "devDependencies": {
     "@reduxjs/toolkit": "^1.5.0",
     "@rollup/plugin-commonjs": "^17.0.0",
