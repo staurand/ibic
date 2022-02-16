@@ -1,0 +1,4 @@
+[
+  { "id": "1", "urls": ["/dev/back-end/images/image-small.jpg", "/dev/back-end/images/image-small-2.jpg", "/dev/back-end/images/image-small-3.jpg"] },
+  { "id": "2", "urls": ["/dev/back-end/images/image-small.png"] }
+]

@@ -1,0 +1,11 @@
+{
+  "headers": [
+    {
+      "source": "dist/sw.js",
+      "headers": [{
+        "key": "Service-Worker-Allowed",
+        "value":"/"
+      }]
+    }
+  ]
+}
