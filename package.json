@@ -1,6 +1,6 @@
 {
   "name": "@staurand/ibic",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "scripts": {
     "build": "NODE_ENV='production' rollup -c",

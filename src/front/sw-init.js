@@ -28,7 +28,7 @@ export const update = () => {
                                     resolve(true);
                                 }
                             });
-                            navigator.serviceWorker.controller.postMessage({ command: 'skip-waiting' });
+                            navigator.serviceWorker.controller.postMessage({ command: 'stop-working' });
                         } else {
                             resolve(false);
                         }
