@@ -32,7 +32,8 @@ function callback({ sendMessage, eventHandler }) {
                         id: 1,
                         name: 'test.png',
                         urls: ["http://...", "http://..."],
-                        error: '...', // if any
+                        error: '...', // plain text error if any
+                        errors: [], // errors code: 'UNSUPPORTED_IMAGE_TYPE', 'CANT_READ_IMAGE_ERROR' or 'UPLOAD_MAX_SIZE_ERROR' 
                     },
                     state: "processing"
                 },
