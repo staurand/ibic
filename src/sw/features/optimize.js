@@ -4,14 +4,17 @@ import { encodeToPng, decodePng } from '../formats/png.js'
 import { queueItemProcessed, updateItemInQueue } from "./queue";
 import { getConfig } from './config';
 
+export const UNSUPPORTED_IMAGE_TYPE = 'UNSUPPORTED_IMAGE_TYPE';
+export const CANT_READ_IMAGE_ERROR = 'CANT_READ_IMAGE_ERROR';
+
 /**
  * Optimize images retreived from the item urls.
  * @param urls
  * @param config
- * @returns {Promise<{success: boolean, datas: {}, error: string}>}
+ * @returns {Promise<{success: boolean, datas: {}, error: string, errors: string[]}>}
  */
 export const optimizeImages = async ({ urls }, config) => {
-    let result = { success: true, datas: {}, error: '' };
+    let result = { success: true, datas: {}, error: '', errors: [] };
     for (let index = 0; index < urls.length; index ++) {
         const url = urls[index];
         const { success, error, data } = await optimizeImage(url, config);
@@ -21,13 +24,14 @@ export const optimizeImages = async ({ urls }, config) => {
             result.success = false;
             result.datas[url] = false;
             result.error += error;
+            result.errors.push(error);
         }
     }
     return result;
 }
 
 /**
- * Optimize the the image based on the url parameter
+ * Optimize the image based on the url parameter
  * @param url
  * @param config
  * @returns {Promise<{success: boolean, error: (string)}|{data: [], success: boolean}>}
@@ -80,9 +84,6 @@ export const optimize = async (url, config) => {
     const formats = getImageOutputFormats(ext);
 
     const imageData = await decode(url, config.codecs_path);
-    if (imageData === false) {
-        return 'The image can\'t be decoded';
-    }
 
     const optimizedImages = [];
     for (let index = 0; index < formats.length; index ++) {
@@ -119,7 +120,7 @@ export const optimize = async (url, config) => {
  * Decode image based on the url parameter.
  * @param url
  * @param codecs_path
- * @returns {Promise<boolean|*>}
+ * @returns {Promise<string|*>}
  */
 export const decode = async (url, codecs_path) => {
     const { ext } = getUrlInfo(url);
@@ -131,11 +132,11 @@ export const decode = async (url, codecs_path) => {
             case 'png':
                 return await decodePng(url, codecs_path);
             default:
-                return false;
+                return UNSUPPORTED_IMAGE_TYPE;
         }
-    } catch (error) {
-        console.log(error);
-        return false;
+    } catch (e) {
+        console.log(e);
+        return CANT_READ_IMAGE_ERROR;
     }
 
 }
@@ -155,7 +156,7 @@ export const otimizeMiddleware = (store) => (next) => async (action) => {
         case OPTIMIZE_IMAGE:
             const result = await optimizeImages(action.item.payload, config);
             if (!result.success) {
-                store.dispatch(updateItemInQueue(action.item.id, { error: result.error } ));
+                store.dispatch(updateItemInQueue(action.item.id, { error: result.error, errors: result.errors } ));
             } else {
                 store.dispatch(updateItemInQueue(action.item.id, { datas: result.datas } ));
             }

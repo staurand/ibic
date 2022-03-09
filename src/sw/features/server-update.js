@@ -4,10 +4,15 @@ import {
     getQueueItemById,
     processNextItemInQueue,
     queueItemProcessed,
-    updateItemInQueue
+    updateItemInQueue,
+    removeItemInQueue
 } from "./queue";
 import { getConfig } from './config';
 import { OPTIMIZE_IMAGE } from './optimize';
+
+
+export const IMAGE_UPLOAD_FAILED_ERROR = 'IMAGE_UPLOAD_FAILED_ERROR';
+export const UPLOAD_MAX_SIZE_ERROR = 'UPLOAD_MAX_SIZE_ERROR';
 
 /**
  * Upload item with compressed images to the server
@@ -19,7 +24,7 @@ import { OPTIMIZE_IMAGE } from './optimize';
       id: 'ServerUpdate/UPLOAD_IMAGE/123',
       state: 'processing'
  }
- * @returns {Promise<boolean>}
+ * @returns {Promise<object>} Returns { success: true } or { success: false, error: '...' }
  */
 export const uploadItem = async (uploadURL, queueItem) => {
     const formData = new FormData();
@@ -50,10 +55,21 @@ export const uploadItem = async (uploadURL, queueItem) => {
 
     try {
         const uploadResponse = await fetch(uploadURL, { method: 'POST', body: formData, headers: myHeaders });
+        if (uploadResponse.status >= 400) {
+            let error = IMAGE_UPLOAD_FAILED_ERROR;
+            if (uploadResponse.status === 413) {
+                error = UPLOAD_MAX_SIZE_ERROR;
+            }
+            return { success: false, error };
+        }
+
         const uploadResponseJson = await uploadResponse.json();
-        return uploadResponseJson && uploadResponseJson.success;
+        if (!uploadResponseJson) {
+            return { success: false, error: IMAGE_UPLOAD_FAILED_ERROR };
+        }
+        return uploadResponseJson;
     } catch (error) {
-        return false;
+        return { success: false, error: IMAGE_UPLOAD_FAILED_ERROR };
     }
 }
 
@@ -69,6 +85,7 @@ export const serverUpdateMiddleware = (store) => (next) => async (action) => {
     if (action.type === ITEM_PROCESSED) {
         const item = getQueueItemById(store, action.id);
         if (item && item.queue === OPTIMIZE_IMAGE) {
+            store.dispatch(removeItemInQueue(item.id));
             store.dispatch(addToQueue(item.payload, UPLOAD_IMAGE));
             store.dispatch(processNextItemInQueue(UPLOAD_IMAGE));
         }
@@ -77,8 +94,8 @@ export const serverUpdateMiddleware = (store) => (next) => async (action) => {
 
         const uploadResponse = await uploadItem(config.image_upload_url, action.item);
         store.dispatch(queueItemProcessed(action.item.id));
-        if (!uploadResponse) {
-            store.dispatch(updateItemInQueue(action.item.id, { error: 'Image upload failed' }));
+        if (!uploadResponse.success) {
+            store.dispatch(updateItemInQueue(action.item.id, { error: 'Image upload failed', errors: [ uploadResponse.error ] }));
         }
         // Remove optimized images datas.
         store.dispatch(updateItemInQueue(action.item.id, { datas: {} }));

@@ -1,6 +1,15 @@
 import { getConfig } from './config';
-import { addToQueue, getQueueItemById, updateItemInQueue, getQueueItemsByQueue, removeItemInQueue, ITEM_STATE } from './queue';
+import {
+    addToQueue,
+    getQueueItemById,
+    updateItemInQueue,
+    getQueueItemsByQueue,
+    removeItemInQueue,
+    ITEM_STATE,
+    ITEM_PROCESSED
+} from './queue';
 import { OPTIMIZE_IMAGE } from './optimize';
+import { UPLOAD_IMAGE } from './server-update';
 
 /**
  * Load image list from url
@@ -35,37 +44,52 @@ export const updateImageList = async (store) => {
     if (!Array.isArray(list)) {
         return false;
     }
-    const newListIds = [];
+    const newOptimizeListIds = [];
     list.map((image) => {
-        const queueItemId = OPTIMIZE_IMAGE + '/' + image.id;
-        let item = getQueueItemById(store, queueItemId);
-        const hasChanged = !item || hasURLsListChanged(item.payload.urls, image.urls);
-        newListIds.push(queueItemId);
+        const optimizeQueueItemId = OPTIMIZE_IMAGE + '/' + image.id;
+        const uploadQueueItemId = UPLOAD_IMAGE + '/' + image.id;
+        let item = getQueueItemById(store, optimizeQueueItemId);
+        if (!item) {
+            item = getQueueItemById(store, uploadQueueItemId);
+        }
 
+        newOptimizeListIds.push(optimizeQueueItemId);
+
+        let shouldBeAdded = !item;
+        let shouldBeUpdated = item && item.state !== ITEM_STATE.PROCESSING && hasURLsListChanged(item.payload.urls, image.urls);
         if (item) {
             if (item.payload.error) {
-                // if the item has an error, remove the item and retry
-                store.dispatch(removeItemInQueue(item.id));
-                item = null;
-            } else if (item.state !== ITEM_STATE.IDLE && hasChanged) {
-                // if the item is already processing or processed but we have new URLs, add the image to the queue.
-                item = null;
-            } else if (!hasChanged)  {
-                return;
+                shouldBeAdded = false;
+                shouldBeUpdated = false;
             }
         }
-
-        if (!item) {
+        if (shouldBeAdded) {
             store.dispatch(addToQueue(image, OPTIMIZE_IMAGE));
-        } else  {
-            store.dispatch(updateItemInQueue(queueItemId, image));
+        } else if (shouldBeUpdated)  {
+            store.dispatch(updateItemInQueue(item.id, image));
         }
+        // last cases: the item has not changed or the item is in processing state (wait for it to be in IDLE / PROCESSED state)
     });
 
     // Remove items not in the list
     getQueueItemsByQueue(store, OPTIMIZE_IMAGE).forEach((item) => {
-        if (newListIds.indexOf(item.id) === -1) {
-            store.dispatch(removeItemInQueue(item.id));
+        if (newOptimizeListIds.indexOf(item.id) === -1) {
+            const itemToBeRemoved = getQueueItemById(store, item.id);
+            // Don't remove item in processing state
+            if (itemToBeRemoved.state !== ITEM_STATE.PROCESSING) {
+                store.dispatch(removeItemInQueue(item.id));
+            }
+        }
+    });
+
+    // Limit the size of the processed items in the upload queue to 10
+    let countUploadProcessedItems = 0;
+    getQueueItemsByQueue(store, UPLOAD_IMAGE).forEach((item) => {
+        if (item.state === ITEM_PROCESSED && !item.payload.error) {
+            countUploadProcessedItems+=1;
+            if (countUploadProcessedItems >= 10) {
+                store.dispatch(removeItemInQueue(item.id));
+            }
         }
     });
 

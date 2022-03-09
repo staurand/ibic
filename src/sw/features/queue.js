@@ -23,6 +23,15 @@ export const updateItemInQueue = (id, payload) => {
     };
 }
 
+export const UPDATE_ITEM_STATE = 'Queue/UPDATE_ITEM_STATE';
+export const updateItemStateInQueue = (id, state) => {
+    return {
+        type: UPDATE_ITEM_STATE,
+        id,
+        state
+    };
+}
+
 export const NEXT = 'Queue/NEXT';
 export const processNextItemInQueue = (queue) => {
     return {
@@ -38,6 +47,7 @@ export const processItemInQueue = (id) => {
         id
     };
 }
+
 export const ITEM_PROCESSED = 'Queue/ITEM_PROCESSED';
 export const queueItemProcessed = (id) => {
     return {
@@ -45,6 +55,7 @@ export const queueItemProcessed = (id) => {
         id
     };
 }
+
 export const PROCESSED = 'Queue/PROCESSED';
 export const queueProcessed = () => {
     return {
@@ -75,12 +86,20 @@ export const queue = (state = [], action) => {
                 }
                 return item;
             });
-        // Change queue item state
+        // Change queue item state based on the action
         case PROCESS_ITEM:
         case ITEM_PROCESSED:
             return state.map((item) => {
                 if (item.id === action.id) {
                     return { ...item, state: action.type === PROCESS_ITEM ? ITEM_STATE.PROCESSING: ITEM_STATE.PROCESSED };
+                }
+                return item;
+            });
+        // Change queue item state manually (for tests)
+        case UPDATE_ITEM_STATE:
+            return state.map((item) => {
+                if (item.id === action.id) {
+                    return { ...item, state: action.state };
                 }
                 return item;
             });
@@ -95,6 +114,10 @@ export const queue = (state = [], action) => {
 
 export const getQueueItemById = (store, id) => {
     const item = store.getState().queue.filter((item) => item.id === id)[0];
+    return item;
+}
+export const getQueueItemByPayloadId = (store, id) => {
+    const item = store.getState().queue.filter((item) => item.payload.id === id)[0];
     return item;
 }
 export const getQueueItemToBeProcessed = (store, queueName) => {

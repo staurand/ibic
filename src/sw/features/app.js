@@ -1,6 +1,13 @@
 import { refreshConfig } from './config.js';
 import { updateImageList } from "./image-list.js";
-import { processNextItemInQueue, getQueueItemsByQueue, getQueueItemProcessed, ITEM_STATE, getQueueItemToBeProcessed } from "./queue.js";
+import {
+    processNextItemInQueue,
+    getQueueItemsByQueue,
+    getQueueItemProcessed,
+    ITEM_STATE,
+    getQueueItemToBeProcessed,
+    removeItemInQueue, getQueueItemByPayloadId, addToQueue
+} from "./queue.js";
 import { OPTIMIZE_IMAGE } from "./optimize.js";
 import { UPLOAD_IMAGE } from "./server-update.js";
 
@@ -77,6 +84,11 @@ export const appCommandHandler = (store) => {
     return async (command, data, source) => {
         if (command === 'get-update') {
             intervalUpdater(store, source)();
+        } else if (command === 'remove-item') {
+            const item = getQueueItemByPayloadId(store, data.id);
+            if (item) {
+                store.dispatch(removeItemInQueue(item.id));
+            }
         } else if (command === 'skip-waiting') {
             skipWaiting();
         } else if (command === 'stop-working') {

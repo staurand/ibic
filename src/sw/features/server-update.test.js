@@ -1,5 +1,16 @@
 import { initStore } from "../store";
-import { ITEM_PROCESSED, ADD, PROCESS_ITEM, NEXT, UPDATE, addToQueue, queueItemProcessed, updateItemInQueue, getQueueItemById} from "./queue";
+import {
+    ITEM_PROCESSED,
+    ADD,
+    PROCESS_ITEM,
+    NEXT,
+    UPDATE,
+    REMOVE_ITEM,
+    addToQueue,
+    queueItemProcessed,
+    updateItemInQueue,
+    getQueueItemById,
+} from "./queue";
 import { UPLOAD_IMAGE } from "./server-update";
 import { OPTIMIZE_IMAGE } from "./optimize";
 import { setConfig } from "./config";
@@ -27,6 +38,7 @@ describe('feature > server update', () => {
             ADD, // OPTIMIZE_IMAGE queue: dispatched manually see below
             UPDATE, //  dispatched manually see below
             ITEM_PROCESSED, // dispatched manually see below
+            REMOVE_ITEM, // serverUpdateMiddleware remove the item from the OPTIMIZE_IMAGE queue
             ADD, // serverUpdateMiddleware dispatch ADD item in UPLOAD_IMAGE queue
             NEXT, // serverUpdateMiddleware dispatch NEXT item in UPLOAD_IMAGE queue
             PROCESS_ITEM, // queue process item added

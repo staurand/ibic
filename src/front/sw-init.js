@@ -78,10 +78,8 @@ export const initSw = ({ sw_url, scope, config, customReplyHandler }) => {
         const eventHandler = navigator.serviceWorker;
         const sendMessage = function(message) {
             var messageChannel = new MessageChannel();
-            return new Promise(function(resolve, reject) {
-                targetEventHandler.postMessage(message,
-                    [messageChannel.port2]);
-            });
+            targetEventHandler.postMessage(message,
+                [messageChannel.port2]);
         }
         eventHandler.addEventListener('message', replyHandler(sendMessage));
 
