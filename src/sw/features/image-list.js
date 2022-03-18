@@ -5,8 +5,7 @@ import {
     updateItemInQueue,
     getQueueItemsByQueue,
     removeItemInQueue,
-    ITEM_STATE,
-    ITEM_PROCESSED
+    ITEM_STATE
 } from './queue';
 import { OPTIMIZE_IMAGE } from './optimize';
 import { UPLOAD_IMAGE } from './server-update';
@@ -85,9 +84,9 @@ export const updateImageList = async (store) => {
     // Limit the size of the processed items in the upload queue to 10
     let countUploadProcessedItems = 0;
     getQueueItemsByQueue(store, UPLOAD_IMAGE).forEach((item) => {
-        if (item.state === ITEM_PROCESSED && !item.payload.error) {
+        if (item.state === ITEM_STATE.PROCESSED && !item.payload.error) {
             countUploadProcessedItems+=1;
-            if (countUploadProcessedItems >= 10) {
+            if (countUploadProcessedItems > 10) {
                 store.dispatch(removeItemInQueue(item.id));
             }
         }
