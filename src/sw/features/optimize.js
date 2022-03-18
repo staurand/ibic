@@ -6,6 +6,7 @@ import { getConfig } from './config';
 
 export const UNSUPPORTED_IMAGE_TYPE = 'UNSUPPORTED_IMAGE_TYPE';
 export const CANT_READ_IMAGE_ERROR = 'CANT_READ_IMAGE_ERROR';
+export const CANT_OPTIMISE_IMAGE_ERROR = 'CANT_OPTIMISE_IMAGE_ERROR';
 
 /**
  * Optimize images retreived from the item urls.
@@ -84,6 +85,9 @@ export const optimize = async (url, config) => {
     const formats = getImageOutputFormats(ext);
 
     const imageData = await decode(url, config.codecs_path);
+    if (typeof imageData === 'string') {
+        return imageData;
+    }
 
     const optimizedImages = [];
     for (let index = 0; index < formats.length; index ++) {
@@ -111,7 +115,7 @@ export const optimize = async (url, config) => {
     const success = optimizedImages.reduce((result, optimizedImageBuffer) => result && optimizedImageBuffer !== false, true);
 
     if (!success) {
-        return 'The image optimization failed';
+        return CANT_OPTIMISE_IMAGE_ERROR;
     }
     return optimizedImages;
 }
@@ -135,7 +139,7 @@ export const decode = async (url, codecs_path) => {
                 return UNSUPPORTED_IMAGE_TYPE;
         }
     } catch (e) {
-        console.log(e);
+        console.error(e);
         return CANT_READ_IMAGE_ERROR;
     }
 
