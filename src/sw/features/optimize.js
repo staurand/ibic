@@ -5,6 +5,7 @@ import { queueItemProcessed, updateItemInQueue } from "./queue";
 import { getConfig } from './config';
 
 export const UNSUPPORTED_IMAGE_TYPE = 'UNSUPPORTED_IMAGE_TYPE';
+export const CANT_DECODE_IMAGE_TOO_BIG_ERROR = 'CANT_DECODE_IMAGE_TOO_BIG_ERROR';
 export const CANT_READ_IMAGE_ERROR = 'CANT_READ_IMAGE_ERROR';
 export const CANT_OPTIMISE_IMAGE_ERROR = 'CANT_OPTIMISE_IMAGE_ERROR';
 
@@ -139,7 +140,10 @@ export const decode = async (url, codecs_path) => {
                 return UNSUPPORTED_IMAGE_TYPE;
         }
     } catch (e) {
-        console.error(e);
+        if (e.message && e.message.indexOf('maxMemoryUsageInMB') > -1) {
+            return CANT_DECODE_IMAGE_TOO_BIG_ERROR;
+        }
+
         return CANT_READ_IMAGE_ERROR;
     }
 

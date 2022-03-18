@@ -56,11 +56,11 @@ export const uploadItem = async (uploadURL, queueItem) => {
     try {
         const uploadResponse = await fetch(uploadURL, { method: 'POST', body: formData, headers: myHeaders });
         if (uploadResponse.status >= 400) {
-            let error = IMAGE_UPLOAD_FAILED_ERROR;
+            let errorMessage = IMAGE_UPLOAD_FAILED_ERROR;
             if (uploadResponse.status === 413) {
-                error = UPLOAD_MAX_SIZE_ERROR;
+                errorMessage = UPLOAD_MAX_SIZE_ERROR;
             }
-            return { success: false, error };
+            return { success: false, error: errorMessage };
         }
 
         const uploadResponseJson = await uploadResponse.json();
@@ -95,7 +95,14 @@ export const serverUpdateMiddleware = (store) => (next) => async (action) => {
         const uploadResponse = await uploadItem(config.image_upload_url, action.item);
         store.dispatch(queueItemProcessed(action.item.id));
         if (!uploadResponse.success) {
-            store.dispatch(updateItemInQueue(action.item.id, { error: 'Image upload failed', errors: [ uploadResponse.error ] }));
+            if (uploadResponse.error) {
+                // If the server returned an error saves this error in the queue item.
+                store.dispatch(updateItemInQueue(action.item.id, { error: 'Image upload failed', errors: [ uploadResponse.error ] }));
+            } else {
+                // If we don't have an error from the server, don't override the queue item errors.
+                store.dispatch(updateItemInQueue(action.item.id, { error: 'Image compression failed' }));
+            }
+
         }
         // Remove optimized images datas.
         store.dispatch(updateItemInQueue(action.item.id, { datas: {} }));
