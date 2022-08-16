@@ -5,7 +5,8 @@ import {
     updateItemInQueue,
     getQueueItemsByQueue,
     removeItemInQueue,
-    ITEM_STATE
+    ITEM_STATE,
+    getQueueItemsByPayloadId
 } from './queue';
 import { OPTIMIZE_IMAGE } from './optimize';
 import { UPLOAD_IMAGE } from './server-update';
@@ -35,7 +36,7 @@ const loadImageList = async (url) => {
 /**
  * Load image list from the "image_list_url" config then add images to the OPTIMIZE_IMAGE queue and process it
  * @param store
- * @returns {Promise<void>}
+ * @returns {Promise<boolean>}
  */
 export const updateImageList = async (store) => {
     const config = await getConfig(store);
@@ -45,14 +46,17 @@ export const updateImageList = async (store) => {
     }
     const newOptimizeListIds = [];
     list.map((image) => {
-        const optimizeQueueItemId = OPTIMIZE_IMAGE + '/' + image.id;
-        const uploadQueueItemId = UPLOAD_IMAGE + '/' + image.id;
-        let item = getQueueItemById(store, optimizeQueueItemId);
-        if (!item) {
-            item = getQueueItemById(store, uploadQueueItemId);
-        }
+        let item = null;
+        let items = getQueueItemsByPayloadId(store, image.id);
+        items.forEach((queueItem) => {
+            if (!item && queueItem.queue === OPTIMIZE_IMAGE) {
+                item = queueItem;
+                newOptimizeListIds.push(item.id);
+            } else if (queueItem.queue === UPLOAD_IMAGE) {
+                item = queueItem;
+            }
+        });
 
-        newOptimizeListIds.push(optimizeQueueItemId);
 
         let shouldBeAdded = !item;
         let shouldBeUpdated = item && item.state !== ITEM_STATE.PROCESSING && hasURLsListChanged(item.payload.urls, image.urls);
@@ -63,7 +67,9 @@ export const updateImageList = async (store) => {
             }
         }
         if (shouldBeAdded) {
-            store.dispatch(addToQueue(image, OPTIMIZE_IMAGE));
+            const newQueueItem = addToQueue(image, OPTIMIZE_IMAGE);
+            store.dispatch(newQueueItem);
+            newOptimizeListIds.push(newQueueItem.item.id);
         } else if (shouldBeUpdated)  {
             store.dispatch(updateItemInQueue(item.id, image));
         }

@@ -60,9 +60,11 @@ describe('feature > server update', () => {
 
         });
 
-        store.dispatch(addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE));
-        store.dispatch(updateItemInQueue(OPTIMIZE_IMAGE + '/123', { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
-        store.dispatch(queueItemProcessed(OPTIMIZE_IMAGE + '/123' ));
+        const addToQueueAction = addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE);
+        const { item } = addToQueueAction;
+        store.dispatch(addToQueueAction);
+        store.dispatch(updateItemInQueue(item.id, { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
+        store.dispatch(queueItemProcessed(item.id ));
     });
 
     test('`serverUpdateMiddleware` should not process item that failed in the optimization step', async (done) => {
@@ -86,21 +88,27 @@ describe('feature > server update', () => {
 
         });
 
-        store.dispatch(addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE));
-        store.dispatch(updateItemInQueue(OPTIMIZE_IMAGE + '/123', {  error: 'Image optimization failed' } ));
+        const addToQueueAction = addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE);
+        const { item } = addToQueueAction;
+        store.dispatch(addToQueueAction);
+        store.dispatch(updateItemInQueue(item.id, {  error: 'Image optimization failed' } ));
     });
 
     test('`serverUpdateMiddleware` should set error message on the queue item if the upload failed', async (done) => {
         let imageUploadDone = false;
+        const addToQueueAction = addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE);
+        const { item } = addToQueueAction;
+        let uploadItemId;
         const unsubscribe = store.subscribe(() => {
             try {
                 const lastActionDispatched = store.getState().lastAction;
                 if (lastActionDispatched.type === UPLOAD_IMAGE) {
                     imageUploadDone = true;
+                    uploadItemId = lastActionDispatched.item.id;
                 } else if (imageUploadDone && lastActionDispatched.type === UPDATE) {
                     unsubscribe();
-                    const item = getQueueItemById(store, UPLOAD_IMAGE + '/123');
-                    expect(item.payload.error).toEqual('Image upload failed');
+                    const itemFound = getQueueItemById(store, uploadItemId);
+                    expect(itemFound.payload.error).toEqual('Image upload failed');
                     done();
                 }
             } catch (e) {
@@ -113,24 +121,29 @@ describe('feature > server update', () => {
             "image_upload_url": "/dev/back-end/upload-image-failed.json",
         }));
 
-        store.dispatch(addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE));
-        store.dispatch(updateItemInQueue(OPTIMIZE_IMAGE + '/123', { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
-        store.dispatch(queueItemProcessed(OPTIMIZE_IMAGE + '/123' ));
+
+        store.dispatch(addToQueueAction);
+        store.dispatch(updateItemInQueue(item.id, { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
+        store.dispatch(queueItemProcessed(item.id ));
 
 
     });
 
     test('`serverUpdateMiddleware` should set error message on the queue item if the upload request failed', async (done) => {
         let imageUploadDone = false;
+        const addToQueueAction = addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE);
+        const { item } = addToQueueAction;
+        let uploadItemId;
         const unsubscribe = store.subscribe(() => {
             try {
                 const lastActionDispatched = store.getState().lastAction;
                 if (lastActionDispatched.type === UPLOAD_IMAGE) {
                     imageUploadDone = true;
+                    uploadItemId = lastActionDispatched.item.id;
                 } else if (imageUploadDone && lastActionDispatched.type === UPDATE) {
                     unsubscribe();
-                    const item = getQueueItemById(store, UPLOAD_IMAGE + '/123');
-                    expect(item.payload.error).toEqual('Image upload failed');
+                    const itemFound = getQueueItemById(store, uploadItemId);
+                    expect(itemFound.payload.error).toEqual('Image upload failed');
                     done();
                 }
             } catch (e) {
@@ -143,9 +156,10 @@ describe('feature > server update', () => {
             "image_upload_url": "/dev/back-end/wrong_url.json",
         }));
 
-        store.dispatch(addToQueue({ id: '123', urls: ['...'] }, OPTIMIZE_IMAGE));
-        store.dispatch(updateItemInQueue(OPTIMIZE_IMAGE + '/123', { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
-        store.dispatch(queueItemProcessed(OPTIMIZE_IMAGE + '/123' ));
+
+        store.dispatch(addToQueueAction);
+        store.dispatch(updateItemInQueue(item.id, { datas: { '...': [{ format: 'jpg', data: new Uint8Array(0)}] } } ));
+        store.dispatch(queueItemProcessed(item.id));
 
 
     });

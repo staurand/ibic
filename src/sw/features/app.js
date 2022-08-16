@@ -6,7 +6,8 @@ import {
     getQueueItemProcessed,
     ITEM_STATE,
     getQueueItemToBeProcessed,
-    removeItemInQueue, getQueueItemByPayloadId, addToQueue
+    removeItemInQueue,
+    getQueueItemByPayloadId
 } from "./queue.js";
 import { OPTIMIZE_IMAGE } from "./optimize.js";
 import { UPLOAD_IMAGE } from "./server-update.js";

@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 export const ITEM_STATE = {
     IDLE: 'idle',
     PROCESSING: 'processing',
@@ -6,8 +7,9 @@ export const ITEM_STATE = {
 
 // *** Actions/Reducers/Middleware ***
 export const ADD = 'Queue/ADD';
-export const addToQueue = (payload, queue) => {
-    const item = { queue, payload: payload, id: queue + '/' + payload.id}
+export const addToQueue = (payload, queue, uuid = uuidv4()) => {
+    const id = queue + '/' + uuid;
+    const item = { queue, payload, id }
     return {
         type: ADD,
         item: { ...item, state: ITEM_STATE.IDLE },
@@ -117,8 +119,11 @@ export const getQueueItemById = (store, id) => {
     return item;
 }
 export const getQueueItemByPayloadId = (store, id) => {
-    const item = store.getState().queue.filter((item) => item.payload.id === id)[0];
+    const item = getQueueItemsByPayloadId(store, id)[0];
     return item;
+}
+export const getQueueItemsByPayloadId = (store, id) => {
+    return store.getState().queue.filter((item) => item.payload.id === id);
 }
 export const getQueueItemToBeProcessed = (store, queueName) => {
     return store.getState().queue.filter((item) => item.state === ITEM_STATE.IDLE && item.queue === queueName);
