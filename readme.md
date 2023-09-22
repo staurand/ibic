@@ -1,6 +1,6 @@
 # IBIC (In Browser Image Compression)
 IBIC is a library that compresses images in the browser.
-It has been build to be used with a server ; IBIC retrieves images to compress from the server and send back the images compressed in different formats.
+It has been built to be used with a server ; IBIC retrieves images to compress from the server and send back the images compressed in different formats.
 
 ## Usage
 In the dist folder you will find:
@@ -31,7 +31,7 @@ function callback({ sendMessage, eventHandler }) {
                     payload: {
                         id: 1,
                         name: 'test.png',
-                        urls: ["http://...", "http://..."],
+                        urls: ["https://...", "https://..."],
                         error: '...', // plain text error if any
                         errors: [], // errors code: 'UNSUPPORTED_IMAGE_TYPE', 'CANT_READ_IMAGE_ERROR' or 'UPLOAD_MAX_SIZE_ERROR' 
                     },
@@ -74,7 +74,7 @@ This endpoint should return a json response following the format below:
     {
         id: the id of the image (e.g 44),
         name: the name of the image (e.g "test.png"),
-        urls: a list of image urls (e.g ["http://example.org/image-44.png", "http://example.org/image-44-200x100.png"]
+        urls: a list of image urls (e.g ["https://example.org/image-44.png", "https://example.org/image-44-200x100.png"]
     },
     {
         id: ...,
