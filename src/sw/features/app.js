@@ -91,7 +91,7 @@ export const appCommandHandler = (store) => {
                 store.dispatch(removeItemInQueue(item.id));
             }
         } else if (command === 'skip-waiting') {
-            skipWaiting();
+            skipWaiting(); // Globally available: https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/skipWaiting
         } else if (command === 'stop-working') {
             clearTimeout(intervalID);
 
