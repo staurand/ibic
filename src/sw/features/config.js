@@ -35,6 +35,9 @@ export const configCommandHandler = (store) => {
 
 // *** Actions/Reducers/Slices ***
 export const SET_CONFIG = 'SET_CONFIG';
+export const DEFAULT_CONFIG = {
+    max_file_uploads: 4
+}
 export const setConfig = (config) => {
     return {
         type: SET_CONFIG,
@@ -45,7 +48,10 @@ export const setConfig = (config) => {
 export const config = (state = null, action) => {
     switch (action.type) {
         case SET_CONFIG:
-            return action.config;
+            return {
+                ...DEFAULT_CONFIG,
+                ...action.config
+            };
         default:
             return state;
     }

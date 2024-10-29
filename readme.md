@@ -58,6 +58,7 @@ initSw({
         codecs_path: '...', // URL of the folder containing the codecs
         image_list_url: '...', // the server URL that will return the image list to process
         image_upload_url: '...', // the server URL that will receive the compressed images
+        max_file_uploads: 4, // Max number of files to upload in each request.
     }
 })
     .then(callback) 
@@ -94,6 +95,7 @@ POST:
 - id: the image id (the one sent by the `image_list_url` endpoint)
 - urls: the list of urls processed
 - error: the error message if any
+- partial: '1' / '0'. If partial is set to '1' it means there are subsequent requests to be done.
 
 _The below is based on PHP_
 
